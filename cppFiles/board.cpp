@@ -1,9 +1,6 @@
 #include "board.h"
 using namespace std;
 
-
-
-
 //constructor
 Board::Board() {
 	for (int i = 0; i < 2; i++) {
@@ -17,6 +14,15 @@ Board::Board() {
 	WhiteToMove = true;
 	enPassent = '-';
 
+}
+
+void Board::init() {
+	Board::initKnightAttacks();
+	Board::initKingAttacks();
+	Board::initBishopMasks();
+	Board::initRookMasks();
+	Board::initRookBlockerTable();
+	Board::initBishopBlockerTable();
 }
 
 U64 Board::square (int file, int rank) {
@@ -87,7 +93,7 @@ void Board::FENtoBoard (string fen) {
 string Board::BoardtoFEN() {
 	string resultString = "";
 	int counter, sideOccupying, pieceOccupying;
-	char ch;
+	char ch = '-';
 	for (int rank = 8; rank > 0; rank--) {
 		counter = 0;
 		for (int file = 1; file <= 8; file++) {
@@ -198,17 +204,36 @@ void Board::toBitboardString(int color, int piece) {
 		cout << endl;
 
 	} 
-	cout << endl;
+	 cout << endl;
 }
+
+void Board::toBitboardString(U64 piece) {
+	cout << "  a b c d e f g h" << endl;
+	for (int rank = 8; rank > 0; rank--) {
+		cout << rank <<" ";
+		for (int file = 1; file < 9; file++) {
+			if ((piece & square(file, rank) ) >= 1 )
+				cout << 1 << " ";
+			else
+				cout << 0 << " ";
+
+		}
+		cout << endl;
+
+	} 
+	 cout << endl;
+
+}
+
 // moves the given piece in a given direction (N,E,S,W)
 U64 Board::moveOne(U64 piece, int d) {
-	if (d == N) {
+	if (d == NORTH) {
 		return (~rank_i(8) & piece) << 8; 
 	}
-	else if (d == S) {
+	else if (d == SOUTH) {
 		return (~rank_i(1) & piece) >> 8;
 	}
-	else if (d == E) {
+	else if (d == EAST) {
 		return (~file_i(8) & piece) << 1;
 	}
 	else {
