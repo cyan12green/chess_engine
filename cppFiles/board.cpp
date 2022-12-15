@@ -13,7 +13,18 @@ Board::Board() {
 	halfmove = fullmoveCounter = 0;
 	WhiteToMove = true;
 	enPassent = '-';
+}
 
+Board::Board(const Board &b) {
+	for (int i=0; i < 2; i++) Players.push_back(Side());
+	
+	Players[WHITE].Pieces.insert(Players[WHITE].Pieces.begin(), b.Players[WHITE].Pieces.begin(), b.Players[WHITE].Pieces.end());
+	Players[BLACK].Pieces.insert(Players[BLACK].Pieces.begin(), b.Players[BLACK].Pieces.begin(), b.Players[BLACK].Pieces.end());
+	
+	halfmove = b.halfmove;
+	fullmoveCounter = b.fullmoveCounter;
+	WhiteToMove = b.WhiteToMove;
+	enPassent = b.enPassent;
 }
 
 void Board::init() {
@@ -261,4 +272,54 @@ U64 Board::blackPieces() {
 
 U64 Board::empty() {
 	return (U64) ~(whitePieces() | blackPieces()) ;
+}
+
+void Board::representBoard(int color){
+	string s ="\n", f = "", rev = "\n";
+	int sq, file, rank;
+	char p='f';
+	if (color == BLACK)
+		cout << "  ";
+	cout << "A B C D E F G H";
+	for (rank = 1; rank <=8; rank++) {
+		f ="";
+		s += to_string(rank) + " ";
+		for (file = 1; file<=8; file++) {
+
+			sq = whichOccupySide(file,rank);
+			if (sq == -1) {
+				f += "* ";
+			}
+			else {
+				switch(whichOccupyPiece(file, rank, sq)){
+					case PAWN: p = (sq)?'p':'t';
+							   break;
+					case ROOK: p = 'r';
+							   break;
+					case KNIGHT: p = 'n';
+								 break;
+					case BISHOP: p = 'b';
+								 break;
+					case KING: p = 'k';
+							   break;
+					case QUEEN: p = 'q';
+								break;
+				}
+				p = (sq == WHITE)? toupper(p):p;
+				f += string(1,p) + " ";
+				
+			}
+		}
+		s += f + "\n";
+		reverse(f.begin(), f.end());
+		rev += to_string(rank)+ " ";
+		rev += f + "\n";
+	}
+	reverse(rev.begin(), rev.end());
+	if (color == WHITE) {
+		cout << rev;
+	}
+	else
+		cout << s;
+	cout << endl;
 }

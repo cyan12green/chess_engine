@@ -1,16 +1,15 @@
+#ifndef __BOARD__
 #define __BOARD__
+
 #include <iostream>
 #include <string>
 #include <cmath>
 #include <algorithm>
 
-#ifndef __HELPERFILE__
-#include "helperFile.h"
-#endif
 
-#ifndef __RAYS__
+#include "helperFile.h"
 #include "rays.cpp"
-#endif
+
 
 #define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 class Board {
@@ -24,24 +23,27 @@ class Board {
 		
 		//inits
 		Board();
+		Board(const Board &b);
 		static void init();
 		//helpers
 		static U64 square (int file, int rank);
 		U64 empty();
 		U64 whitePieces();
 		U64 blackPieces();
-
 		int whichOccupySide(int file, int rank);
 		int whichOccupyPiece(int file, int rank, int color);
 		static U64 moveOne(U64 piece, int direction);
 		void toBitboardString(int color, int piece);
 		void toBitboardString(U64 piece);
-
+		
 		//Fen conversions
 		void FENtoBoard(string fen);
 		string BoardtoFEN();
-		
+		void representBoard(int color);
+		void setEnPassent(U64 sq);
+
 		//Pawns
+		//TODO enpassent
 		U64 PawnSinglePushTargets(U64 pawns, int color);
 		U64 PawnDoublePushTargets(U64 pawns, int color);
 		U64 PawnsAbleToPush(U64 pawns, int color);
@@ -69,6 +71,7 @@ class Board {
 		bool canCastleQueen(int color);
 		void castleKingSide(int color);
 		void castleQueenSide(int color);
+		bool isInCheck(int color);
 		
 		//sliding pieces
 		static vector<vector<U64>> RookBlockerTable; // RookBT[64][key]
@@ -79,7 +82,14 @@ class Board {
 		static void initBishopBlockerTable();
 		static void initBishopMasks();
 		static void initRookMasks();
-		static U64 generateAttackKeySliding(int piece, int sq, U64 blockers);
+		static int generateAttackKeySliding(int piece, int sq, U64 blockers);
 		static U64 generateAttackSet(int piece, int sq, U64 blockers);
+		static U64 getMovesSlidingPiece(int piece, int sq, U64 blockers);
+		
+		//moves related
+		static U64 getMoveSetOfPiece(int piece, int color, Board b);
+		static bool isSqAttackedBy(int sq, int color ,Board *b);
+		static vector<Board> legalMoves(int color, Board b);
+		static Board capturing(int piece, int color, U64 bitboard, Board b);
 };
-
+#endif

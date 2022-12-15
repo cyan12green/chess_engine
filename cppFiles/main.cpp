@@ -3,33 +3,20 @@
 // inits
 vector<U64> Board::KnightAttacksLookup = {};
 vector<U64> Board::KingAttacksLookup = {};
-vector<vector<U64>> Board::RookBlockerTable(64, vector<U64>(4096)) ;
-vector<vector<U64>> Board::BishopBlockerTable(64, vector<U64>(4096));
-vector<U64> Board::BishopMasks = {};
-vector<U64> Board::RookMasks = {};
+vector<vector<U64>> Board::RookBlockerTable(64, vector<U64>(4096, 0)) ;
+vector<vector<U64>> Board::BishopBlockerTable(64, vector<U64>(4096,0));
+vector<U64> Board::BishopMasks(64,0);
+vector<U64> Board::RookMasks(64, 0);
 Rays Board::_RAY = {};
 int main() {
+	string fen = "1r1qkb1r/pbpp1p1p/n4n2/1p2p1p1/P2P1P2/R1NBPN2/1PPB2PP/3QK2R w Kk e6 0 2";
 	Board b;
 	Board::init();
-	b.FENtoBoard(START_FEN);
-	int ind= 0;
-	int sq = 22;
-	U64 blockers = 0xFFED345AB1;
-	cout << "blockers \n";
-	b.toBitboardString(blockers);
+	b.FENtoBoard(fen);
+	b.representBoard(WHITE);
 	
-	cout << "rook mask \n";
-	b.toBitboardString(b.RookMasks[sq]);
-	
-	cout << "masked blocker \n";
-	b.toBitboardString(blockers & Board::RookMasks[sq]);
-	//b.toBitboardString((blockers & Board::BishopMasks[sq]) * BMagic[sq]);
-	
-	//b.toBitboardString(Board::generateAttackSet(BISHOP, sq, blockers));
-	cout << "attack set \n";
-	b.toBitboardString(Board::generateAttackSet(ROOK,sq, blockers));//Board::RookBlockerTable[sq][Board::generateAttackKeySliding(ROOK, sq, blockers)]);
-	
-	cout << "done";
-
+	for (Board c: Board::legalMoves(WHITE, b)) {
+		c.representBoard(WHITE);
+	}
 	return 0;
 }

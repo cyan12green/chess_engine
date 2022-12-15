@@ -14,22 +14,24 @@ void Board::initKingAttacks() {
 	}
 }
 
-//TODO Add condition for castling through checks
+
 bool Board::canCastleKing(int color) {
 	if (color == WHITE) {
-		return Players[WHITE].CastleKing & (whichOccupySide(6, 1) == -1) & (whichOccupySide(7,1) == -1);
+		return Players[WHITE].CastleKing && (whichOccupySide(6, 1) == -1) && (whichOccupySide(7,1) == -1) 
+			&& !isSqAttackedBy(square(6,1), BLACK, this) && !isSqAttackedBy(square(7,1), BLACK, this);
 	}
 	else {
-		return Players[BLACK].CastleKing & (whichOccupySide(6,8) == -1) & (whichOccupySide(7,8) == -1);
+		return Players[BLACK].CastleKing && (whichOccupySide(6,8) == -1) && (whichOccupySide(7,8) == -1) 
+			&& !isSqAttackedBy(square(6,8),WHITE, this) && !isSqAttackedBy(square(7,8), WHITE, this);
 	}
 }
 
 bool Board::canCastleQueen(int color) {
 	if (color == WHITE) {
-		return Players[WHITE].CastleQueen & (whichOccupySide(2, 1) == -1) & (whichOccupySide(3,1) == -1) & (whichOccupySide(4,1) == -1);
+		return Players[WHITE].CastleQueen && (whichOccupySide(2, 1) == -1) && (whichOccupySide(3,1) == -1) && (whichOccupySide(4,1) == -1)			&& !isSqAttackedBy(square(4,1), BLACK, this) && !isSqAttackedBy(square(3,1), BLACK, this);
 	}
 	else {
-		return Players[BLACK].CastleKing & (whichOccupySide(2,8) == -1) & (whichOccupySide(3,8) == -1) & (whichOccupySide(4,8) == -1);
+		return Players[BLACK].CastleKing && (whichOccupySide(2,8) == -1) && (whichOccupySide(3,8) == -1) && (whichOccupySide(4,8) == -1)&& !isSqAttackedBy(square(4,8), WHITE, this) && !isSqAttackedBy(square(3,8), WHITE, this);;
 	}
 }
 
@@ -55,5 +57,12 @@ void Board::castleQueenSide(int color) {
 		Players[color].Pieces[ROOK] &= ~((U64) 1 << 56 );
 		Players[color].Pieces[ROOK] |= ((U64)1 << 59);
 	}
+}
 
+bool Board::isInCheck(int color) {
+	if (color == WHITE) {
+		return (Players[WHITE].Pieces[KING] & blackPieces()) == 1;
+	}
+	else 
+		return (Players[BLACK].Pieces[KING] & whitePieces()) == 1;
 }

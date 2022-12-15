@@ -1,6 +1,11 @@
 #include "helperFile.h"
-
-class engine() {
-	
+#include "board.h"
+class Engine {
+	public: 
+		int f;
 
 };
+
+int main() {
+	return 0;
+}

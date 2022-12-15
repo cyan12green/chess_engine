@@ -1,8 +1,8 @@
 CC = g++
 CFLAGS = -Wall -g -O3
 
-main: main.o board.o helperFile.o pawn.o knight.o king.o slidingPieces.o rays.o
-	$(CC) $(CFLAGS) -o main main.o board.o helperFile.o pawn.o knight.o king.o slidingPieces.o rays.o
+main: main.o board.o helperFile.o pawn.o knight.o king.o slidingPieces.o rays.o move.o
+	$(CC) $(CFLAGS) -o main main.o board.o helperFile.o pawn.o knight.o king.o slidingPieces.o rays.o move.o
 
 main.o: main.cpp board.h 
 	$(CC) $(CFLAGS) -c main.cpp
@@ -27,5 +27,8 @@ slidingPieces.o: slidingPieces.cpp board.h
 
 rays.o: rays.cpp helperFile.h
 	$(CC) $(CFLAGS) -c rays.cpp
+
+move.o: move.cpp board.h
+	$(CC) $(CFLAGS) -c move.cpp
 clean: 
-	$(RM) *.o; clear;
+	$(RM) *.o main; clear;

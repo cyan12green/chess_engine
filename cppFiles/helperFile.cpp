@@ -43,8 +43,8 @@ int pop_1st_bit(U64 *bb) {
 }
 
 vector<U64> permutBit(U64 bb) {
-	if (bb == 0) 
-		return {0};
+	if (bb == (U64) 0) 
+		return {(U64)0};
 	vector<U64> result, temp;
 	U64 t = ((U64)1 << (pop_1st_bit(&bb)));
 	temp = permutBit(bb);

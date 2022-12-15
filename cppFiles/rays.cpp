@@ -1,3 +1,4 @@
+#ifndef __RAYS__
 #define __RAYS__
 
 #ifndef __HELPERFILE__
@@ -41,17 +42,17 @@ class Rays {
 			
 			for (rank = 1; rank <= 8; rank++)
 				for (file = 1; file<=8; file++) {
-					RAY[SOUTH][square(file,rank)] = (file_i(file) >> 8*(8-rank + 1)) & (file_i(file));
+					RAY[SOUTH][square(file,rank)] = (file_i(file) >> (8*(8 - rank + 1) -1)) & (file_i(file));
 				}
 			
 			for (rank = 1; rank <= 8; rank++) 
 				for (file = 1; file <=8; file++) {
 					temp1 = temp2 = 0;
-					for (f = file; f<=8; f++) 
+					for (f = file+1; f<=8; f++) 
 						temp1 |= file_i(f);
-					for (r = rank; r<=8;r++)
+					for (r = rank+1; r<=8;r++)
 						temp2 |=rank_i(r);
-					RAY[NORTHEAST][square(file,rank)] = (rDiag << square(file+1,rank+1)) & (temp1 & temp2); 
+					RAY[NORTHEAST][square(file,rank)] = (rDiag << (square(file+1,rank+1) )) & (temp1 & temp2); 
 				}
 			
 			for (rank = 1; rank <= 8; rank++) 
@@ -59,7 +60,7 @@ class Rays {
 					temp1 = temp2 = 0;
 					for (f = 1; f<file; f++) 
 						temp1 |= file_i(f);
-					for (r = rank; r<=8;r++)
+					for (r = rank+1; r<=8;r++)
 						temp2 |=rank_i(r);
 					RAY[NORTHWEST][square(file,rank)] = (lDiag << square(file,rank)) & (temp1 & temp2); 
 				}
@@ -84,3 +85,4 @@ class Rays {
 				}
 		}
 };
+#endif

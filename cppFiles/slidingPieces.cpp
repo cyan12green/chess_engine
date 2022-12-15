@@ -8,7 +8,7 @@ void Board::initBishopMasks() {
 	for (int rank = 1; rank <= 8; rank++) {
 		for (int file = 1; file <= 8; file++) {
 			sq = (file-1 + 8*(rank-1));
-			BishopMasks.push_back((_RAY.RAY[NORTHWEST][sq] | _RAY.RAY[SOUTHEAST][sq] | _RAY.RAY[NORTHEAST][sq] | _RAY.RAY[SOUTHWEST][sq]) 
+			BishopMasks[sq] = ((_RAY.RAY[NORTHWEST][sq] | _RAY.RAY[SOUTHEAST][sq] | _RAY.RAY[NORTHEAST][sq] | _RAY.RAY[SOUTHWEST][sq]) 
 					& notEdge);
 		}
 	}
@@ -16,23 +16,41 @@ void Board::initBishopMasks() {
 
 void Board::initRookMasks() {
 	const U64 notEdge = ~(rank_i(8) | rank_i(1) | file_i(1) | file_i(8));
-	
+	const U64 notEdgeSq = ~(square(1,1) | square(8,1) | square(1,8) | square(8,8));
+	int sq;
 	for (int rank =1; rank <=8; rank++) {
 		for (int file = 1; file <= 8; file++) {
-			RookMasks.push_back((file_i(file) | rank_i(rank)) & notEdge & ~square(file,rank));
+			sq = file-1 + 8*(rank-1);
+			RookMasks[sq] = ((file_i(file) | rank_i(rank)) & notEdge & ~square(file,rank));
+			
+			if (file == 1) {
+				RookMasks[sq] |= (file_i(1) & ~square(file,rank));
+			}
+			if (file == 8) {
+				RookMasks[sq] |= (file_i(8) & ~square(file,rank));
+			}
+			if (rank == 1) {
+				RookMasks[sq] |= (rank_i(1) & ~square(file,rank));
+			}
+			if (rank == 8) {
+				RookMasks[sq] |= (rank_i(8) & ~square(file,rank));
+			}
+			RookMasks[sq] &= notEdgeSq;
+			 
 		}
 	}
+	
 }
 
-U64 Board::generateAttackKeySliding(int piece, int sq, U64 blockers) {
+int Board::generateAttackKeySliding(int piece, int sq, U64 blockers) {
 	if (piece == BISHOP) {
 		blockers &= BishopMasks[sq];
-		return (blockers * BMagic[sq]) >> (64 - BishopBitShift[sq]);
+		return (int)((blockers * BMagic[sq]) >> (64 - BishopBitShift[sq]));
 	}
 	//rook
 	else {
 		blockers &= RookMasks[sq];
-		return (blockers * RMagic[sq]) >> (64 - RookBitShift[sq]);
+		return (int) ((blockers * RMagic[sq]) >> (64 - RookBitShift[sq]));
 	}
 }
 U64 Board::generateAttackSet(int piece, int sq, U64 blockers) {
@@ -71,23 +89,28 @@ U64 Board::generateAttackSet(int piece, int sq, U64 blockers) {
 
 
 	}else if (piece == ROOK) {
+		
 		attacks |= _RAY.RAY[NORTH][sq];
-		if (temp = _RAY.RAY[NORTH][sq] & blockers; temp) {
+		temp = (_RAY.RAY[NORTH][sq] & blockers);
+		if (temp) {
 			blockerIndex = pop_1st_bit(&temp);
 			attacks &= ~_RAY.RAY[NORTH][blockerIndex];
 		}
 		attacks |= _RAY.RAY[EAST][sq];
-		if (temp = _RAY.RAY[EAST][sq] & blockers; temp) {
+		temp = _RAY.RAY[EAST][sq] & blockers; 
+		if (temp) {
 			blockerIndex = pop_1st_bit(&temp);
 			attacks &= ~_RAY.RAY[EAST][blockerIndex];
 		}
 		attacks |= _RAY.RAY[SOUTH][sq];
-		if (temp = _RAY.RAY[SOUTH][sq] & blockers; temp) {
+		temp = _RAY.RAY[SOUTH][sq] & blockers;
+		if (temp) {
 			blockerIndex = __builtin_clzl(temp);
 			attacks &= ~_RAY.RAY[SOUTH][63 - blockerIndex];
 		}
 		attacks |= _RAY.RAY[WEST][sq];
-		if (temp = _RAY.RAY[WEST][sq] & blockers; temp) {
+		temp = _RAY.RAY[WEST][sq] & blockers;
+		if (temp) {
 			blockerIndex = __builtin_clzl(temp);
 			attacks &= ~_RAY.RAY[WEST][63 - blockerIndex];
 		}
@@ -119,9 +142,23 @@ void Board::initRookBlockerTable() {
 			temp.clear();
 			sq = (file-1) + 8*(rank-1);
 			temp = permutBit(RookMasks[sq]);
+			
 			for (U64 blockers: temp) {
+				
 				RookBlockerTable[sq][Board::generateAttackKeySliding(ROOK, sq, blockers)] = Board::generateAttackSet(ROOK, sq, blockers);
 			}
 		}
+	} 
+}
+
+U64 Board::getMovesSlidingPiece(int piece, int sq, U64 blockers) {
+	if (piece == BISHOP) {
+		return BishopBlockerTable[sq][generateAttackKeySliding(BISHOP, sq, blockers)];
+	}
+	else if (piece == ROOK) {
+		return RookBlockerTable[sq][generateAttackKeySliding(ROOK, sq, blockers)];
+	}
+	else {
+		return BishopBlockerTable[sq][generateAttackKeySliding(BISHOP, sq, blockers)] | RookBlockerTable[sq][generateAttackKeySliding(ROOK,sq,blockers)]; 
 	}
 }

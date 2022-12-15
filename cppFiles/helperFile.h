@@ -1,3 +1,4 @@
+#ifndef __HELPERFILE__
 #define __HELPERFILE__
 
 #include <string>
@@ -32,6 +33,7 @@ using namespace std;
 #define SOUTHEAST 6
 #define SOUTHWEST 7
 
+#define ONE (U64)1
 const U64 file_mask = 0x8080808080808080ull;
 
 struct Side {
@@ -58,7 +60,6 @@ const int BitTable[64] = {
 int pop_1st_bit(U64 *bb);
 
 vector<U64> permutBit(U64 bb);
-
 const U64 RMagic[64] = {
   0x2080020500400f0ULL,
   0x28444000400010ULL,
@@ -193,6 +194,7 @@ const U64 BMagic[64] = {
   0x825201600c082444ULL,
 };
 
+
 const int RookBitShift[64] = {
   12, 11, 11, 11, 11, 11, 11, 12,
   11, 10, 10, 10, 10, 10, 10, 11,
@@ -214,3 +216,4 @@ const int BishopBitShift[64] = {
   5, 5, 5, 5, 5, 5, 5, 5,
   6, 5, 5, 5, 5, 5, 5, 6
 };
+#endif
