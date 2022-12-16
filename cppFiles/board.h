@@ -17,7 +17,7 @@ class Board {
 		vector<Side> Players;
 		bool WhiteToMove;
 		int halfmove, fullmoveCounter;
-		string enPassent;
+		U64 enPassent;
 		
 		static Rays _RAY;
 		
@@ -44,6 +44,7 @@ class Board {
 
 		//Pawns
 		//TODO enpassent
+		//TODO promotion
 		U64 PawnSinglePushTargets(U64 pawns, int color);
 		U64 PawnDoublePushTargets(U64 pawns, int color);
 		U64 PawnsAbleToPush(U64 pawns, int color);

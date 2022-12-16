@@ -12,11 +12,14 @@ int main() {
 	string fen = "1r1qkb1r/pbpp1p1p/n4n2/1p2p1p1/P2P1P2/R1NBPN2/1PPB2PP/3QK2R w Kk e6 0 2";
 	Board b;
 	Board::init();
+	
 	b.FENtoBoard(fen);
 	b.representBoard(WHITE);
-	
+	cout << b.enPassent << endl;
+	cout << b.BoardtoFEN() << endl;
 	for (Board c: Board::legalMoves(WHITE, b)) {
-		c.representBoard(WHITE);
+		cout << c.BoardtoFEN();
+		cout << endl;
 	}
 	return 0;
 }

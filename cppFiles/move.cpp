@@ -41,10 +41,12 @@ Board Board::capturing(int piece, int color, U64 bitboard, Board b) {
 		for (int i = 0; i< MAXPIECES; i++) {
 			if (b.Players[1-color].Pieces[i] & temp) {
 				b.Players[1-color].Pieces[i] ^= temp;
+				b.halfmove = 0;
 				break;
 			}
 		}
 	}
+
 	return b;
 }
 
@@ -61,11 +63,28 @@ vector<Board> Board::legalMoves(int color, Board b){
 				tempMoves = b.Players[color].Pieces[PAWN];
 				while(tempMoves) {
 					tempPiece1 = ONE << (pop_1st_bit(&tempMoves)); //pawns
-					tempPiece2 = (b.PawnSinglePushTargets(tempPiece1, color) | b.PawnDoublePushTargets(tempPiece1, color) ) & ~friendly; 
+					tempPiece2 = (b.PawnSinglePushTargets(tempPiece1, color)) & ~friendly; 
 					while (tempPiece2) {
 						tempBoard = b;
 						tempBoard.Players[color].Pieces[PAWN] ^= tempPiece1;
 						tempBoard.Players[color].Pieces[PAWN] |= ONE << pop_1st_bit(&tempPiece2);
+						tempBoard.halfmove = 0;
+						if (!tempBoard.isInCheck(color))
+							ret.push_back(tempBoard);
+					}
+					tempPiece2 = (b.PawnDoublePushTargets(tempPiece1, color)) & ~friendly;
+					while(tempPiece2) {
+						tempBoard = b;
+						tempBoard.Players[color].Pieces[PAWN] ^= tempPiece1;
+						U64 forEnP = ONE << pop_1st_bit(&tempPiece2);
+						tempBoard.Players[color].Pieces[PAWN] |= forEnP;
+						if (color == WHITE) {
+							tempBoard.enPassent = moveOne(forEnP, SOUTH);
+						}
+						else {
+							tempBoard.enPassent = moveOne(forEnP, NORTH);
+						}
+						tempBoard.halfmove = 0;
 						if (!tempBoard.isInCheck(color))
 							ret.push_back(tempBoard);
 					}
@@ -91,7 +110,9 @@ vector<Board> Board::legalMoves(int color, Board b){
 						ind = pop_1st_bit(&tempPiece2);
 						if ((ONE << ind) & ~friendly) {
 							tempBoard.Players[color].Pieces[KNIGHT] |= (ONE << ind);
+							tempBoard.halfmove++;
 							tempBoard = capturing(KNIGHT, color, (ONE << ind), tempBoard);
+							
 							if (!tempBoard.isInCheck(color))
 								ret.push_back(tempBoard);
 						}
@@ -110,6 +131,7 @@ vector<Board> Board::legalMoves(int color, Board b){
 						ind = pop_1st_bit(&tempPiece2);
 						if ((ONE << ind) & ~friendly) {
 							tempBoard.Players[color].Pieces[KING] |= (ONE << ind);
+							tempBoard.halfmove++;
 							tempBoard = capturing(KING, color, (ONE << ind), tempBoard);
 							if (!tempBoard.isInCheck(color))
 								ret.push_back(tempBoard);
@@ -119,11 +141,13 @@ vector<Board> Board::legalMoves(int color, Board b){
 				if (b.canCastleKing(color)) {
 					tempBoard = b;
 					tempBoard.castleKingSide(color);
+					tempBoard.halfmove++;
 					ret.push_back(tempBoard);
 				}
 				if (b.canCastleQueen(color)) {
 					tempBoard = b;
 					tempBoard.castleQueenSide(color);
+					tempBoard.halfmove++;
 					ret.push_back(tempBoard);
 				}
 				break;
@@ -139,6 +163,7 @@ vector<Board> Board::legalMoves(int color, Board b){
 						ind = pop_1st_bit(&tempPiece2);
 						if ((ONE << ind) & ~friendly) {
 							tempBoard.Players[color].Pieces[i] |= (ONE << ind);
+							tempBoard.halfmove++;
 							tempBoard = capturing(i, color, (ONE << ind), tempBoard);
 							if (!tempBoard.isInCheck(color))
 								ret.push_back(tempBoard);
@@ -147,6 +172,11 @@ vector<Board> Board::legalMoves(int color, Board b){
 				}
 			 	break;
 			
+		}
+	}
+	if (color == BLACK) {
+		for (Board c : ret) {
+			c.fullmoveCounter++;
 		}
 	}
 	return ret;

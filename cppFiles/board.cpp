@@ -46,7 +46,13 @@ void Board::FENtoBoard (string fen) {
 	vector<string> piecesInFEN = splitString(whole[0], "/"); // just the pieces in fen
 
 	WhiteToMove = (whole[1] == "w");
-	enPassent = whole[3];
+	if (whole[3] == "-") {
+		enPassent = 0;
+	}
+	else {
+		enPassent = square(whole[3][0] - 'a' + 1, whole[3][1] - '1' + 1);
+	}
+
 	halfmove = stoi(whole[4]);
 	fullmoveCounter = stoi(whole[5]);
 
@@ -114,8 +120,8 @@ string Board::BoardtoFEN() {
 			}
 			else {
 				if (counter != 0) {
-					cout << counter + '0';
 					resultString.push_back(counter + '0');
+					counter = 0;
 				}
 				pieceOccupying = whichOccupyPiece(file, rank, sideOccupying);
 				switch(pieceOccupying) {
@@ -165,7 +171,13 @@ string Board::BoardtoFEN() {
 		resultString.push_back('q');
 
 	resultString.push_back(' ');
-	resultString.append(enPassent);
+	U64 enPT = enPassent;
+	int temp = pop_1st_bit(&enPT);
+	if (enPassent != 0)
+		resultString.append((char)('a' + (temp % 8)) + to_string(temp/8 + 1));
+	else
+		resultString.append("-");
+
 	resultString.push_back(' ');
 	resultString.append(to_string(halfmove) + " " + to_string(fullmoveCounter));
 	return resultString;
