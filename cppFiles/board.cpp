@@ -180,7 +180,7 @@ string Board::BoardtoFEN() {
 
 	resultString.push_back(' ');
 	resultString.append(to_string(halfmove) + " " + to_string(fullmoveCounter));
-	return resultString;
+	return resultString; 
 }
 
 // returns which side is occupied in a given square, -1 if empty
@@ -334,4 +334,21 @@ void Board::representBoard(int color){
 	else
 		cout << s;
 	cout << endl;
+}
+
+string Board::moveStr(Board from, Board to) {
+	U64 temp = ~to.empty() ^ ~from.empty();
+	pop_1st_bit(&temp);
+	if (temp) {
+		temp = (~to.empty() ^ ~from.empty()) & ~to.empty();
+		int ind = pop_1st_bit(&temp);
+		return string(1, 'a' + ind%8) + to_string(ind/8 + 1);
+	}
+	else {
+		U64 au = (~to.empty() ^ ~from.empty()) ;
+		U64 bu = ((to.blackPieces() & from.whitePieces()) | (to.whitePieces() & from.blackPieces()));
+		int a = pop_1st_bit(&au), b = pop_1st_bit(&bu);
+		return string(1 , 'a' + a%8) + "x" + string(1, 'a'+b%8) + to_string(b/8 + 1);
+	}
+	return "";
 }

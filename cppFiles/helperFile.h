@@ -13,8 +13,8 @@ typedef uint64_t U64;
 
 using namespace std;
 #define PAWN 0
-#define BISHOP 1
-#define KNIGHT 2
+#define KNIGHT 1
+#define BISHOP 2
 #define ROOK 3
 #define QUEEN 4
 #define KING 5

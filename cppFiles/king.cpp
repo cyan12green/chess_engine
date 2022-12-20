@@ -16,22 +16,22 @@ void Board::initKingAttacks() {
 
 
 bool Board::canCastleKing(int color) {
-	if (color == WHITE) {
+	if (color == WHITE) { 
 		return Players[WHITE].CastleKing && (whichOccupySide(6, 1) == -1) && (whichOccupySide(7,1) == -1) 
-			&& !isSqAttackedBy(square(6,1), BLACK, this) && !isSqAttackedBy(square(7,1), BLACK, this);
+			&& !isSqAttackedBy(square(6,1), BLACK, *this) && !isSqAttackedBy(square(7,1), BLACK, *this);
 	}
 	else {
 		return Players[BLACK].CastleKing && (whichOccupySide(6,8) == -1) && (whichOccupySide(7,8) == -1) 
-			&& !isSqAttackedBy(square(6,8),WHITE, this) && !isSqAttackedBy(square(7,8), WHITE, this);
+			&& !isSqAttackedBy(square(6,8),WHITE, *this) && !isSqAttackedBy(square(7,8), WHITE, *this);
 	}
 }
 
 bool Board::canCastleQueen(int color) {
 	if (color == WHITE) {
-		return Players[WHITE].CastleQueen && (whichOccupySide(2, 1) == -1) && (whichOccupySide(3,1) == -1) && (whichOccupySide(4,1) == -1)			&& !isSqAttackedBy(square(4,1), BLACK, this) && !isSqAttackedBy(square(3,1), BLACK, this);
+		return Players[WHITE].CastleQueen && (whichOccupySide(2, 1) == -1) && (whichOccupySide(3,1) == -1) && (whichOccupySide(4,1) == -1)			&& !isSqAttackedBy(square(4,1), BLACK, *this) && !isSqAttackedBy(square(3,1), BLACK, *this);
 	}
 	else {
-		return Players[BLACK].CastleKing && (whichOccupySide(2,8) == -1) && (whichOccupySide(3,8) == -1) && (whichOccupySide(4,8) == -1)&& !isSqAttackedBy(square(4,8), WHITE, this) && !isSqAttackedBy(square(3,8), WHITE, this);;
+		return Players[BLACK].CastleKing && (whichOccupySide(2,8) == -1) && (whichOccupySide(3,8) == -1) && (whichOccupySide(4,8) == -1)&& !isSqAttackedBy(square(4,8), WHITE, *this) && !isSqAttackedBy(square(3,8), WHITE, *this);
 	}
 }
 
@@ -44,7 +44,8 @@ void Board::castleKingSide(int color) {
 	else {
 		Players[color].Pieces[ROOK] &= ~((U64) 1 << 63 );
 		Players[color].Pieces[ROOK] |= ((U64)1 << 61);
-	}
+	} 
+	Players[color].CastleKing = false;
 }
 
 void Board::castleQueenSide(int color) {
@@ -57,12 +58,19 @@ void Board::castleQueenSide(int color) {
 		Players[color].Pieces[ROOK] &= ~((U64) 1 << 56 );
 		Players[color].Pieces[ROOK] |= ((U64)1 << 59);
 	}
+	Players[color].CastleQueen = false;
 }
 
 bool Board::isInCheck(int color) {
-	if (color == WHITE) {
-		return (Players[WHITE].Pieces[KING] & blackPieces()) == 1;
+	U64 temp = Players[color].Pieces[KING];
+	return isSqAttackedBy(pop_1st_bit(&temp), 1-color, *this);
+}
+
+bool Board::isCheckMate() {
+	if (WhiteToMove) {
+		return isInCheck(WHITE) && (legalMoves(WHITE, *this).empty());
 	}
-	else 
-		return (Players[BLACK].Pieces[KING] & whitePieces()) == 1;
+	else {
+		return isInCheck(BLACK) && (legalMoves(BLACK, *this).empty());
+	}
 }

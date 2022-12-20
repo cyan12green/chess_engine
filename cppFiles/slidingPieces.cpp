@@ -2,45 +2,36 @@
 
 
 // https://rhysre.net/fast-chess-move-generation-with-magic-bitboards.html
+void Board::initRookMasks() {
+	int rk, fl, f, r;
+	U64 result;
+	for (int sq = 0; sq < 64; sq++) {
+		rk = sq/8;
+		fl = sq % 8;
+		result = 0ULL;
+		for (r = rk+1; r <=6; r++) result |= (ONE << (fl + 8*r));
+		for (r = rk-1; r >=1; r--) result |= (ONE << (fl + 8*r));
+		for (f = fl+1; f <=6; f++) result |= (ONE << (f + 8*rk));
+		for (f = fl-1; f >=1; f--) result |= (ONE << (f + 8*rk));
+		RookMasks[sq] = result;
+	} 
+}
+
 void Board::initBishopMasks() {
-	int sq;
-	const U64 notEdge = ~(rank_i(8) | rank_i(1) | file_i(1) | file_i(8));
-	for (int rank = 1; rank <= 8; rank++) {
-		for (int file = 1; file <= 8; file++) {
-			sq = (file-1 + 8*(rank-1));
-			BishopMasks[sq] = ((_RAY.RAY[NORTHWEST][sq] | _RAY.RAY[SOUTHEAST][sq] | _RAY.RAY[NORTHEAST][sq] | _RAY.RAY[SOUTHWEST][sq]) 
-					& notEdge);
-		}
+	int rk, fl, f, r;
+	U64 result;
+	for (int sq = 0; sq < 64; sq++) {
+		rk = sq/8;
+		fl = sq % 8;
+		result = 0ULL;
+		for (r = rk+1, f = fl+1; r <=6 && f <=6; r++, f++) result |= (ONE << (f + 8*r));
+		for (r = rk-1, f = fl+1; r >=1 && f <=6; r--, f++) result |= (ONE << (f + 8*r));
+		for (r = rk+1, f = fl-1; r <=6 && f >=1; r++, f--) result |= (ONE << (f + 8*r));
+		for (r = rk-1, f = fl-1; r >=1 && f >=1; r--, f--) result |= (ONE << (f + 8*r));
+		BishopMasks[sq] = result;
 	}
 }
 
-void Board::initRookMasks() {
-	const U64 notEdge = ~(rank_i(8) | rank_i(1) | file_i(1) | file_i(8));
-	const U64 notEdgeSq = ~(square(1,1) | square(8,1) | square(1,8) | square(8,8));
-	int sq;
-	for (int rank =1; rank <=8; rank++) {
-		for (int file = 1; file <= 8; file++) {
-			sq = file-1 + 8*(rank-1);
-			RookMasks[sq] = ((file_i(file) | rank_i(rank)) & notEdge & ~square(file,rank));
-			
-			if (file == 1) {
-				RookMasks[sq] |= (file_i(1) & ~square(file,rank));
-			}
-			if (file == 8) {
-				RookMasks[sq] |= (file_i(8) & ~square(file,rank));
-			}
-			if (rank == 1) {
-				RookMasks[sq] |= (rank_i(1) & ~square(file,rank));
-			}
-			if (rank == 8) {
-				RookMasks[sq] |= (rank_i(8) & ~square(file,rank));
-			}
-			RookMasks[sq] &= notEdgeSq;
-			 
-		}
-	}
-	
-}
 
 int Board::generateAttackKeySliding(int piece, int sq, U64 blockers) {
 	if (piece == BISHOP) {
@@ -53,70 +44,47 @@ int Board::generateAttackKeySliding(int piece, int sq, U64 blockers) {
 		return (int) ((blockers * RMagic[sq]) >> (64 - RookBitShift[sq]));
 	}
 }
+
 U64 Board::generateAttackSet(int piece, int sq, U64 blockers) {
-	U64 attacks = 0ULL, temp;
-	int blockerIndex;
-	
+	U64 result = 0ULL;
+	int rk = sq/8, fl = sq%8, r, f;
 	if (piece == BISHOP) {
-
-		attacks |= _RAY.RAY[NORTHEAST][sq];
-		if (_RAY.RAY[NORTHEAST][sq] & blockers) {
-			temp= (_RAY.RAY[NORTHEAST][sq] & blockers);
-			blockerIndex = pop_1st_bit(&temp);
-			attacks &= ~_RAY.RAY[NORTHEAST][blockerIndex];
+		for (r = rk+1, f = fl+1; r <=7 && f <=7; f++, r++) {
+			result |= ONE << (f + 8*r);
+			if (blockers & (ONE << (f + 8*r))) break;
 		}
-		
-		attacks |= _RAY.RAY[NORTHWEST][sq];
-		if (_RAY.RAY[NORTHWEST][sq] & blockers) {
-			temp = _RAY.RAY[NORTHWEST][sq] & blockers;
-			blockerIndex = pop_1st_bit(&temp);
-			attacks &= ~_RAY.RAY[NORTHWEST][blockerIndex];
+		for (r = rk+1, f = fl-1; r <=7 && f >=0; f--, r++) {
+			result |= ONE << (f + 8*r);
+			if (blockers & (ONE << (f + 8*r))) break;
 		}
-
-		attacks |= _RAY.RAY[SOUTHEAST][sq];
-		if (_RAY.RAY[SOUTHEAST][sq] & blockers) {
-			temp = (_RAY.RAY[SOUTHEAST][sq] & blockers);
-			blockerIndex = __builtin_clzl(temp); 
-			attacks &= ~_RAY.RAY[SOUTHEAST][63 - blockerIndex];
+		for (r = rk-1, f = fl+1; f <=7 && r >=0; f++, r--) {
+			result |= ONE << (f + 8*r);
+			if (blockers & (ONE << (f + 8*r))) break;
 		}
-
-		attacks |= _RAY.RAY[SOUTHWEST][sq];
-		if (_RAY.RAY[SOUTHWEST][sq] & blockers) {
-			temp = (_RAY.RAY[SOUTHWEST][sq] & blockers);
-			blockerIndex = __builtin_clzl(temp);
-			attacks &= ~_RAY.RAY[SOUTHWEST][63 - blockerIndex];
-		} 
-
-
-	}else if (piece == ROOK) {
-		
-		attacks |= _RAY.RAY[NORTH][sq];
-		temp = (_RAY.RAY[NORTH][sq] & blockers);
-		if (temp) {
-			blockerIndex = pop_1st_bit(&temp);
-			attacks &= ~_RAY.RAY[NORTH][blockerIndex];
+		for (r = rk-1, f = fl-1; f >=0 && r >=0; f--, r--) {
+			result |= ONE << (f + 8*r);
+			if (blockers & (ONE << (f + 8*r))) break;
 		}
-		attacks |= _RAY.RAY[EAST][sq];
-		temp = _RAY.RAY[EAST][sq] & blockers; 
-		if (temp) {
-			blockerIndex = pop_1st_bit(&temp);
-			attacks &= ~_RAY.RAY[EAST][blockerIndex];
-		}
-		attacks |= _RAY.RAY[SOUTH][sq];
-		temp = _RAY.RAY[SOUTH][sq] & blockers;
-		if (temp) {
-			blockerIndex = __builtin_clzl(temp);
-			attacks &= ~_RAY.RAY[SOUTH][63 - blockerIndex];
-		}
-		attacks |= _RAY.RAY[WEST][sq];
-		temp = _RAY.RAY[WEST][sq] & blockers;
-		if (temp) {
-			blockerIndex = __builtin_clzl(temp);
-			attacks &= ~_RAY.RAY[WEST][63 - blockerIndex];
-		}
-
 	}
-	return attacks;
+	else {
+		for (r= rk+1; r <= 7; r++) {
+			result |= (ONE << (fl + 8*r));
+			if (blockers & (ONE << (fl + 8*r))) break;
+		}
+		for (r= rk-1; r >= 0; r--) {
+			result |= (ONE << (fl + 8*r));
+			if (blockers & (ONE << (fl + 8*r))) break;
+		}
+		for (f = fl+1; f <= 7; f++) {
+			result |= (ONE << (f + 8*rk));
+			if (blockers & (ONE << (f + 8*rk))) break;
+		}
+		for (f = fl-1; f >= 0; f--) {
+			result |= (ONE << (f + 8*rk));
+			if (blockers & (ONE << (f + 8*rk))) break;
+		}
+	}
+	return result;
 }
 void Board::initBishopBlockerTable() {
 	vector<U64> temp;

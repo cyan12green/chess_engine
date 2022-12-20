@@ -85,6 +85,8 @@ U64 Board::PawnsAbleToCaptureAny(U64 pawns, int color) {
 	return pawns & PawnsAnyAttacks(pieces, 1 - color);
 }
 
-
+U64 Board::PawnsPromoteTargets(U64 pawns, int color) {
+	return (PawnSinglePushTargets(pawns, color) | PawnsAnyAttacks(PawnsAbleToCaptureAny(pawns, color), color)) & rank_i(1 + 7*(1-color));
+}
 
 

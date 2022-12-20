@@ -8,8 +8,6 @@
 
 
 #include "helperFile.h"
-#include "rays.cpp"
-
 
 #define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 class Board {
@@ -19,7 +17,7 @@ class Board {
 		int halfmove, fullmoveCounter;
 		U64 enPassent;
 		
-		static Rays _RAY;
+		
 		
 		//inits
 		Board();
@@ -35,16 +33,13 @@ class Board {
 		static U64 moveOne(U64 piece, int direction);
 		void toBitboardString(int color, int piece);
 		void toBitboardString(U64 piece);
-		
+		static string moveStr(Board from, Board to);
 		//Fen conversions
 		void FENtoBoard(string fen);
 		string BoardtoFEN();
 		void representBoard(int color);
 		void setEnPassent(U64 sq);
 
-		//Pawns
-		//TODO enpassent
-		//TODO promotion
 		U64 PawnSinglePushTargets(U64 pawns, int color);
 		U64 PawnDoublePushTargets(U64 pawns, int color);
 		U64 PawnsAbleToPush(U64 pawns, int color);
@@ -57,6 +52,7 @@ class Board {
 		U64 PawnsAbleToCaptureEast(U64 pawns, int color);
 		U64 PawnsAbleToCaptureWest(U64 pawns, int color);
 		U64 PawnsAbleToCaptureAny(U64 pawns, int color);
+		U64 PawnsPromoteTargets(U64 pawns, int color);
 		
 		
 		//Knights
@@ -73,6 +69,7 @@ class Board {
 		void castleKingSide(int color);
 		void castleQueenSide(int color);
 		bool isInCheck(int color);
+		bool isCheckMate();
 		
 		//sliding pieces
 		static vector<vector<U64>> RookBlockerTable; // RookBT[64][key]
@@ -89,8 +86,8 @@ class Board {
 		
 		//moves related
 		static U64 getMoveSetOfPiece(int piece, int color, Board b);
-		static bool isSqAttackedBy(int sq, int color ,Board *b);
+		static bool isSqAttackedBy(int sq, int color ,Board b);
 		static vector<Board> legalMoves(int color, Board b);
-		static Board capturing(int piece, int color, U64 bitboard, Board b);
+		static int capturing(int piece, int color, U64 bitboard, Board* b);
 };
 #endif
